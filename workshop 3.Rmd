@@ -40,9 +40,178 @@ survey_short%>%filter(
 survey_short%>%
   select(how_old_are_you, industry, annual_salary, gender)%>%
   filter(gender=="woman")
+
 ```
 
 
-#data loading
+#data wrangling
+Arranging observations
+
+```{r}
+
+survey_short%>%
+  head(10)%>%
+  select(timestamp,how_old_are_you,job_title)%>%
+  knitr::kable()
+
+knitr:: kable(survey_short[1:10,1:5])
 
 
+survey_short%>% top_n(n=10)
+
+survey_short%>%arrange(desc(annual_salary))%>% 
+  select(industry, annual_salary)
+  
+survey_short%>%count(industry, sort=TRUE)
+  
+```
+
+
+groupings and new variables
+
+```{r}
+
+survey_short%>%
+  mutate(total_salary=annual_salary+other_monetary_comp)%>%
+  select(industry,total_salary,annual_salary,other_monetary_comp)
+
+
+survey_short%>%
+  mutate(average_salary=mean(annual_salary, na.rm=TRUE))%>%
+  select(industry, average_salary)
+
+
+survey_short%>%
+  group_by(industry)%>%
+  mutate(average_salary=mean(annual_salary, na.rm=TRUE))%>%
+  select(industry, average_salary)%>%
+  arrange(desc(average_salary))%>%
+  ungroup()
+
+survey_short%>%
+  group_by(industry, gender)%>%
+  mutate(average_salary=mean(annual_salary, na.rm=TRUE))%>%
+  select(industry, gender, average_salary)%>%
+  arrange(desc(average_salary))%>%
+  ungroup()
+#add a new variable max_salary which is maximum salary per industry
+```
+
+summerizing data
+
+```{r}
+
+survey_short%>%
+  group_by(industry)%>%
+  summerise(average_salary=mean(annual_salary, na.rm=True))
+
+#group by industry and gender and use summerise for average_salary
+#group by gender and industry and use summerise for average salary
+
+#group by industry and gender and use summerise for average_salary and max_salary
+```
+
+```{r}
+survey_short%>%
+  group_by(industry, gender)%>%
+  summarise(
+    average_salary=mean(annual_salary,na.rm=TRUE),
+    max_salary=max(annual_salary,na.rm=TRUE))
+```
+Case_when
+
+```{r}
+
+survey_short_veryshort<-survey_short%>%
+  select(industry, gender, annual_salary)
+
+
+#if annual_salary is more than 70000 then your annual_salary_level is high otherwise it is low
+
+survey_short_veryshort%>%
+  mutate(
+    annual_salary_level=case_when(
+      annual_salary>70000 ~"high",
+      T~"low"
+       )
+ )%>%
+  arrange(desc(annual_salary))
+
+#if annual_salary is more then 700000 then your annual_salary_level is high,#if annual_salary is more than 70000 or less or equal to 700000 then your annual_salary_level is middle.
+#otherwise it is low
+
+survey_short_veryshort%>%
+  mutate(
+    annual_salary_level=case_when(
+      annual_salary>700000 ~"high",
+      annual_salary>70000 & annual_salary<=700000 ~"middle",
+      T~"low"
+       )
+ )%>%
+  arrange(desc(annual_salary))
+
+#create a variable highly_paid_women
+#if gender=="woman" and annual_salary>50000 then(~)it is "high, otherwise it is low
+
+survey_short_veryshort%>%
+  mutate(
+    high_paid_wom=case_when(
+      gender=="Woman"& annual_salary>50000~"high",
+      T~"low"
+    )
+    
+  )%>%arrange(desc(annual_salary))
+
+```
+
+
+```{r}
+
+data(mpg)
+mpg%>% ggplot(
+  aes(displ, hwy, colour = trans)
+  )+ 
+  geom_point()
+
+```
+```{r}
+
+data(mpg)
+mpg%>% ggplot(
+  aes(displ, hwy, colour = year , size=trans, shape=model)
+  )+ 
+  geom_point()
+
+```
+
+```{r} 
+
+
+#Change aes() for x and y and generate 1 data viz when one var is discrete and 1 cont.
+
+data(mpg)
+mpg%>% ggplot(
+  aes(displ, hwy ) 
+  )+ 
+  geom_col()
+
+```
+
+
+```{r} 
+install.packages("skimr")
+
+library(skimr)
+skim(survey)
+```
+
+#Change aes() for x and y and generate 1 data viz when one var is discrete and 1 cont, 1 data viz with two cont, 1data vis with JUST ONE discrete variable
+
+```{r}
+data(mpg)
+mpg%>% ggplot(
+  aes(displ, hwy ) 
+  )+ 
+  geom_smooth(method=lm)
+
+```
